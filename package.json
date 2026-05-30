@@ -9,6 +9,7 @@
 	"license": "Apache-2.0",
 	"author": "Alex Kahn",
 	"workspaces": [
-		"postgres"
+		"postgres",
+		"s3"
 	]
 }
