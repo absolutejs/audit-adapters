@@ -37,6 +37,7 @@
  * so the plugin doesn't take a hard dep).
  */
 import type { Audit } from '@absolutejs/audit';
+import { readActiveTraceId } from '@absolutejs/telemetry';
 import { Elysia } from 'elysia';
 
 /** Minimal subset of Elysia's request `Context` that we read. */
@@ -144,37 +145,6 @@ const safeHeaders = (
 	return headers as Record<string, string | undefined>;
 };
 
-/** Try to read the active OTel trace id without taking a hard dep on
- *  `@opentelemetry/api`. Returns `undefined` if OTel isn't installed
- *  or there's no active span. */
-const readOtelTraceId = async (): Promise<string | undefined> => {
-	try {
-		// `import()` is dynamic; bundlers leave it alone when the dep
-		// isn't installed. The try/catch absorbs the "Cannot find
-		// module" the runtime would throw.
-		// Build the module specifier at runtime so tsc doesn't try to
-		// resolve it statically — `@opentelemetry/api` is an optional
-		// peer and may not be installed.
-		const otelSpecifier = ['@opentelemetry', 'api'].join('/');
-		const otel = (await import(otelSpecifier).catch(() => null)) as
-			| null
-			| {
-					trace: {
-						getActiveSpan: () =>
-							| { spanContext: () => { traceId: string } }
-							| undefined;
-					};
-				};
-		if (otel === null) return undefined;
-		const span = otel.trace.getActiveSpan?.();
-		if (!span) return undefined;
-		const ctx = span.spanContext?.();
-		return ctx?.traceId;
-	} catch {
-		return undefined;
-	}
-};
-
 const coerceStatus = (value: number | string | undefined): number => {
 	if (typeof value === 'number') return value;
 	if (typeof value === 'string') {
@@ -262,7 +232,7 @@ export const auditElysia = (options: AuditElysiaOptions) => {
 			}
 
 			if (correlateOtelTraceId) {
-				const traceId = await readOtelTraceId();
+				const traceId = await readActiveTraceId();
 				if (traceId !== undefined) {
 					metadata = { ...(metadata ?? {}), traceId };
 				}

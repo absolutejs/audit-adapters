@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.0.2] — 2026-05-30
+
+### Refactored — use `@absolutejs/telemetry.readActiveTraceId`
+
+Internal cleanup. The dynamic-optional `@opentelemetry/api` import for
+reading the active span's trace id moved out of audit-elysia and into
+`@absolutejs/telemetry@0.0.3`'s `readActiveTraceId()` helper.
+Behavior is unchanged — `correlateOtelTraceId: true` still attaches
+`metadata.traceId` to every audit event when an OTel span is active.
+
+`@absolutejs/telemetry@^0.0.3` added as a regular dep (250 LOC, zero
+transitive deps — no consumer-side peer-dep gymnastics).
+
+13 tests still green.
+
 ## [0.0.1] — 2026-05-30
 
 Initial preview. Elysia plugin that emits one structured audit event per
