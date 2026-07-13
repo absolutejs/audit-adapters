@@ -1,6 +1,6 @@
 {
 	"name": "@absolutejs/audit-postgres",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Postgres-backed AuditSink for @absolutejs/audit. Accepts any postgres-js-compatible tag template (porsager/postgres OR @neondatabase/serverless). Lazy schema, jsonb metadata, indexed on (at DESC) / kind / actor.",
 	"repository": {
 		"type": "git",
