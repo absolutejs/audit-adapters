@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.3] — 2026-07-14
+
+- `list({ limit })` now selects the most recent matching rows and returns that
+  window oldest-first, matching `@absolutejs/audit@0.0.5` and allowing stable
+  integrity writers to resume from the correct chain head after restart.
+- Corrects the public `PostgresTag` type to accept the thenable query helpers
+  returned by postgres-js, Neon, and Bun SQL rather than requiring a concrete
+  `Promise` with an unused `count` property.
+
 ## [0.0.1] — 2026-05-30
 
 Initial preview. Postgres-backed `AuditSink` for `@absolutejs/audit`.

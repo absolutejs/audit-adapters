@@ -41,11 +41,15 @@ import type { AuditEvent, AuditEventFilter, AuditSink } from '@absolutejs/audit'
  * have to install it.
  */
 export type PostgresTag = {
+	unsafe: (sql: string) => unknown;
+};
+
+type ExecutablePostgresTag = {
 	<T = unknown>(
 		strings: TemplateStringsArray,
 		...values: unknown[]
-	): Promise<T[]> & { count: number };
-	unsafe: (sql: string) => Promise<unknown[]>;
+	): PromiseLike<T[]>;
+	unsafe: (sql: string) => PromiseLike<unknown[]>;
 };
 
 /** Strict identifier validation — used for `table` in the DDL. Defends
@@ -84,7 +88,7 @@ export const createPostgresAuditSink = (
 			`[audit-postgres] invalid table name "${table}"; must match ${IDENTIFIER.source}`
 		);
 	}
-	const { sql } = options;
+	const sql = options.sql as unknown as ExecutablePostgresTag;
 	const shouldEnsureSchema = options.ensureSchema ?? true;
 
 	let schemaReady: Promise<void> | undefined;
@@ -106,7 +110,7 @@ export const createPostgresAuditSink = (
 			CREATE INDEX IF NOT EXISTS ${table}_kind_idx ON ${table} (kind);
 			CREATE INDEX IF NOT EXISTS ${table}_actor_idx ON ${table} (actor) WHERE actor IS NOT NULL;
 		`;
-		schemaReady = sql.unsafe(ddl).then(() => undefined);
+		schemaReady = Promise.resolve(sql.unsafe(ddl)).then(() => undefined);
 		return schemaReady;
 	};
 
@@ -138,14 +142,18 @@ export const createPostgresAuditSink = (
 			metadata: unknown;
 		}>`
 			SELECT at, kind, actor, target, metadata
-			FROM ${sql.unsafe(table)}
-			WHERE
-				(${kind ?? null}::text IS NULL OR kind LIKE '%' || ${kind ?? ''} || '%')
-				AND (${actor ?? null}::text IS NULL OR actor = ${actor ?? null})
-				AND (${since ?? null}::bigint IS NULL OR at >= ${since ?? 0})
-				AND (${until ?? null}::bigint IS NULL OR at <= ${until ?? 0})
+			FROM (
+				SELECT id, at, kind, actor, target, metadata
+				FROM ${sql.unsafe(table)}
+				WHERE
+					(${kind ?? null}::text IS NULL OR kind LIKE '%' || ${kind ?? ''} || '%')
+					AND (${actor ?? null}::text IS NULL OR actor = ${actor ?? null})
+					AND (${since ?? null}::bigint IS NULL OR at >= ${since ?? 0})
+					AND (${until ?? null}::bigint IS NULL OR at <= ${until ?? 0})
+				ORDER BY at DESC, id DESC
+				LIMIT ${limit}
+			) recent
 			ORDER BY at ASC, id ASC
-			LIMIT ${limit}
 		`;
 		// postgres-js returns `bigint` columns as strings under some
 		// driver configurations. Normalize to JS number — audit events

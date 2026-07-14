@@ -106,6 +106,13 @@ describe('createPostgresAuditSink — 0.0.1 (real PG)', () => {
 		}
 		const limited = (await sink.list?.({ limit: 5 })) ?? [];
 		expect(limited).toHaveLength(5);
+		expect(limited.map((event) => event.at)).toEqual([
+			1020,
+			1021,
+			1022,
+			1023,
+			1024
+		]);
 	});
 
 	test('prune deletes events older than cutoff and returns count', async () => {
