@@ -73,12 +73,25 @@ audit event with shape:
 auditElysia({
   audit,                       // required — the Audit handle
   actor?: (ctx) => string | undefined | Promise<...>,
+  exclude?: ({ request }) => boolean | Promise<boolean>,
   redact?: (req) => Record<string, unknown> | undefined,
   correlateOtelTraceId?: boolean,
   kind?: string,               // default 'http.request'
   requestIdHeader?: string | null, // default 'x-request-id'
 });
 ```
+
+Exclude high-frequency operational traffic from the compliance stream:
+
+```ts
+auditElysia({
+  audit,
+  exclude: ({ request }) =>
+    ['/healthz', '/readyz', '/metrics'].includes(new URL(request.url).pathname),
+});
+```
+
+An exclusion callback that throws fails closed: the request is audited.
 
 ### `actor`
 

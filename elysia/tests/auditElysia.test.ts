@@ -212,6 +212,50 @@ describe('auditElysia — actor resolver', () => {
 	});
 });
 
+describe('auditElysia — exclusion', () => {
+	test('skips matching operational paths without allocating an audit event', async () => {
+		const sink = memorySink();
+		const audit = createAudit({ sinks: [sink] });
+		const app = new Elysia()
+			.use(
+				auditElysia({
+					audit,
+					exclude: async ({ request }) =>
+						new URL(request.url).pathname === '/healthz'
+				})
+			)
+			.get('/healthz', () => 'ok')
+			.get('/business', () => 'ok');
+
+		await app.handle(new Request('http://localhost/healthz'));
+		await app.handle(new Request('http://localhost/business'));
+		await settle();
+		const events = (await sink.list?.()) ?? [];
+		expect(events).toHaveLength(1);
+		expect(events[0]?.target).toBe('GET /business');
+	});
+
+	test('fails closed when the exclusion callback throws', async () => {
+		const sink = memorySink();
+		const audit = createAudit({ sinks: [sink] });
+		const app = new Elysia()
+			.use(
+				auditElysia({
+					audit,
+					exclude: () => {
+						throw new Error('filter unavailable');
+					}
+				})
+			)
+			.get('/business', () => 'ok');
+
+		await app.handle(new Request('http://localhost/business'));
+		await settle();
+		const events = (await sink.list?.()) ?? [];
+		expect(events).toHaveLength(1);
+	});
+});
+
 describe('auditElysia — redact + custom kind', () => {
 	test('redact overrides the metadata payload', async () => {
 		const sink = memorySink();

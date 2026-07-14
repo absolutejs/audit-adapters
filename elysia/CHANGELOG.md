@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.5] — 2026-07-14
+
+- Adds async `exclude(context)` filtering before request state is allocated.
+  Health checks, Prometheus scrapes, and other high-frequency operational
+  endpoints can now stay out of compliance audit streams without replacing the
+  official middleware. A throwing filter fails closed and the request is
+  audited.
+
 ## [0.0.4] — 2026-07-14
 
 - Aligns the runtime and development `@absolutejs/telemetry` dependency with

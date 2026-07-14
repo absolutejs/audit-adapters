@@ -87,6 +87,14 @@ export type AuditElysiaOptions = {
 	 */
 	actor?: AuditElysiaActorResolver;
 	/**
+	 * Skip non-business traffic such as health probes and metrics scrapes.
+	 * Evaluated before per-request state allocation. Throwing fails closed: the
+	 * request is audited.
+	 */
+	exclude?: (
+		context: ElysiaRequestContext
+	) => boolean | Promise<boolean>;
+	/**
 	 * Build the `metadata` payload of the audit event. Default:
 	 * `{ requestId, durationMs }`. Return `undefined` to omit
 	 * metadata entirely. Use this to redact / enrich:
@@ -160,14 +168,21 @@ export const auditElysia = (options: AuditElysiaOptions) => {
 		options.requestIdHeader === undefined
 			? DEFAULT_REQUEST_ID_HEADER
 			: options.requestIdHeader;
-	const { audit, actor, redact, correlateOtelTraceId = false } = options;
+	const { audit, actor, exclude, redact, correlateOtelTraceId = false } = options;
 
 	// Per-request state keyed by the Request object. WeakMap so entries
 	// drop automatically once the Request is no longer referenced.
 	const stateByRequest = new WeakMap<Request, RequestState>();
 
 	return new Elysia({ name: '@absolutejs/audit-elysia' })
-		.onRequest((ctx) => {
+		.onRequest(async (ctx) => {
+			if (exclude !== undefined) {
+				try {
+					if (await exclude(ctx as unknown as ElysiaRequestContext)) return;
+				} catch {
+					// Filtering is a compliance boundary: fail closed and audit.
+				}
+			}
 			const headers = ctx.request.headers;
 			const fromHeader =
 				requestIdHeader !== null
