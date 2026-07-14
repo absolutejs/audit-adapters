@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.4] — 2026-07-14
+
+- Aligns the runtime and development `@absolutejs/telemetry` dependency with
+  `^0.1.1`, preventing duplicate telemetry installations in hosts using the
+  current official OpenTelemetry provider bridge.
+- No runtime API changes.
+
 ## [0.0.2] — 2026-05-30
 
 ### Refactored — use `@absolutejs/telemetry.readActiveTraceId`
