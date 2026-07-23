@@ -1,6 +1,7 @@
 # @absolutejs/audit-postgres
 
-Postgres-backed `AuditSink` for [@absolutejs/audit](https://github.com/absolutejs/audit).
+Postgres-backed `AuditSink` for [@absolutejs/audit](https://github.com/absolutejs/audit)
+with first-class Drizzle and tagged-template adapters.
 
 Durable, queryable, and uses the same `metadata.__integrity` field for
 tamper-evidence as the in-memory sink — jsonb preserves the chain through
@@ -20,27 +21,57 @@ the adapter accepts.
 
 ## Usage
 
+### Drizzle
+
+Re-export the package-owned table from your application schema so your normal
+Drizzle migration workflow owns its lifecycle:
+
+```ts
+export { auditEvents } from "@absolutejs/audit-postgres";
+```
+
+Then pass any Drizzle Postgres database:
+
+```ts
+import { createAudit, withIntegrity } from "@absolutejs/audit";
+import { createDrizzleAuditSink } from "@absolutejs/audit-postgres";
+
+const audit = createAudit({
+  sinks: [
+    withIntegrity(createDrizzleAuditSink({ db }), {
+      secret: process.env.AUDIT_SECRET,
+      writerId: "shard-A",
+    }),
+  ],
+});
+```
+
+The Drizzle adapter deliberately never runs DDL at application runtime. It
+exports `auditEvents` and `auditDrizzleSchema`, uses native typed JSONB, and
+implements the same recent-window, actor, kind, time-range, and prune behavior
+as the tagged-template adapter.
+
 ### postgres.js
 
 ```ts
-import postgres from 'postgres';
-import { createAudit, withIntegrity } from '@absolutejs/audit';
-import { createPostgresAuditSink } from '@absolutejs/audit-postgres';
+import postgres from "postgres";
+import { createAudit, withIntegrity } from "@absolutejs/audit";
+import { createPostgresAuditSink } from "@absolutejs/audit-postgres";
 
 const sql = postgres(process.env.DATABASE_URL!);
 
 const audit = createAudit({
   sinks: [
-    withIntegrity(
-      createPostgresAuditSink({ sql }),
-      { secret: process.env.AUDIT_SECRET, writerId: 'shard-A' }
-    ),
+    withIntegrity(createPostgresAuditSink({ sql }), {
+      secret: process.env.AUDIT_SECRET,
+      writerId: "shard-A",
+    }),
   ],
 });
 
 await audit.append({
-  kind: 'billing.invoice.created',
-  actor: 'system',
+  kind: "billing.invoice.created",
+  actor: "system",
   target: invoice.id,
   metadata: { amountCents: invoice.amountCents },
 });
@@ -49,8 +80,8 @@ await audit.append({
 ### Neon serverless (Lambda / Workers)
 
 ```ts
-import { neon } from '@neondatabase/serverless';
-import { createPostgresAuditSink } from '@absolutejs/audit-postgres';
+import { neon } from "@neondatabase/serverless";
+import { createPostgresAuditSink } from "@absolutejs/audit-postgres";
 
 const sql = neon(process.env.NEON_URL!);
 const sink = createPostgresAuditSink({ sql });
@@ -88,10 +119,14 @@ CREATE INDEX IF NOT EXISTS audit_events_actor_idx    ON audit_events (actor) WHE
 ## API
 
 ```ts
+const auditEvents: PgTable;
+const auditDrizzleSchema: { auditEvents: typeof auditEvents };
+const createDrizzleAuditSink: ({ db }) => AuditSink;
+
 type CreatePostgresAuditSinkOptions = {
-  sql: PostgresTag;          // postgres-js or @neondatabase/serverless
-  table?: string;            // default 'audit_events'
-  ensureSchema?: boolean;    // default true
+  sql: PostgresTag; // postgres-js or @neondatabase/serverless
+  table?: string; // default 'audit_events'
+  ensureSchema?: boolean; // default true
 };
 
 const createPostgresAuditSink: (options) => AuditSink;
@@ -114,6 +149,14 @@ Returns a standard `AuditSink` implementing `append`, `list` (with `kind` /
   a string; the sink parses on read so callers never see a `string`.
 
 ## Test setup
+
+The Drizzle adapter's PGlite suite is self-contained:
+
+```sh
+bun test tests/drizzleAuditSink.test.ts
+```
+
+The tagged-template compatibility suite uses a real Postgres service:
 
 ```sh
 docker run -d --name pg -p 54330:5432 -e POSTGRES_PASSWORD=postgres postgres:16

@@ -1,83 +1,85 @@
 {
-	"name": "@absolutejs/audit-postgres",
-	"version": "0.0.3",
-	"description": "Postgres-backed AuditSink for @absolutejs/audit. Accepts any postgres-js-compatible tag template (porsager/postgres OR @neondatabase/serverless). Lazy schema, jsonb metadata, indexed on (at DESC) / kind / actor.",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/absolutejs/audit-adapters.git",
-		"directory": "postgres"
-	},
-	"homepage": "https://github.com/absolutejs/audit-adapters/tree/main/postgres",
-	"bugs": {
-		"url": "https://github.com/absolutejs/audit-adapters/issues"
-	},
-	"main": "./dist/index.js",
-	"module": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"type": "module",
-	"license": "Apache-2.0",
-	"author": "Alex Kahn",
-	"absolutejs": {
-		"manifestContract": 1
-	},
-	"publishConfig": {
-		"access": "public"
-	},
-	"keywords": [
-		"audit",
-		"postgres",
-		"neon",
-		"absolutejs",
-		"audit-log",
-		"compliance",
-		"siem"
-	],
-	"scripts": {
-		"build": "rm -rf dist && bun build src/index.ts src/manifest.ts --outdir dist --sourcemap --target=bun --external @absolutejs/audit --external postgres --external @neondatabase/serverless && tsc --project tsconfig.build.json && absolute-manifest emit",
-		"test": "bun test",
-		"typecheck": "tsc --noEmit",
-		"format": "prettier --write \"./**/*.{ts,json,md}\"",
-		"release": "bun run format && bun run build && bun publish"
-	},
-	"peerDependencies": {
-		"@absolutejs/audit": ">= 0.0.1",
-		"@neondatabase/serverless": ">= 0.10.0",
-		"postgres": "^3.0.0"
-	},
-	"peerDependenciesMeta": {
-		"@neondatabase/serverless": {
-			"optional": true
-		},
-		"postgres": {
-			"optional": true
-		}
-	},
-	"devDependencies": {
-		"@absolutejs/audit": "^0.0.5",
-		"@types/bun": "1.3.14",
-		"postgres": "^3.4.9",
-		"prettier": "3.5.3",
-		"typescript": "5.8.3"
-	},
-	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js",
-			"default": "./dist/index.js"
-		},
-		"./manifest": {
-			"types": "./dist/manifest.d.ts",
-			"import": "./dist/manifest.js",
-			"default": "./dist/manifest.js"
-		},
-		"./manifest.json": "./dist/manifest.json"
-	},
-	"files": [
-		"dist",
-		"README.md"
-	],
-	"dependencies": {
-		"@absolutejs/manifest": "^0.1.0",
-		"@sinclair/typebox": "^0.34.0"
-	}
+  "name": "@absolutejs/audit-postgres",
+  "version": "0.0.4",
+  "description": "Postgres-backed AuditSink for @absolutejs/audit with first-class Drizzle and tagged-template adapters, native JSONB metadata, and indexed history.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/absolutejs/audit-adapters.git",
+    "directory": "postgres"
+  },
+  "homepage": "https://github.com/absolutejs/audit-adapters/tree/main/postgres",
+  "bugs": {
+    "url": "https://github.com/absolutejs/audit-adapters/issues"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "license": "Apache-2.0",
+  "author": "Alex Kahn",
+  "absolutejs": {
+    "manifestContract": 1
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "audit",
+    "postgres",
+    "neon",
+    "absolutejs",
+    "audit-log",
+    "compliance",
+    "siem"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && bun build src/index.ts src/manifest.ts --outdir dist --sourcemap --target=bun --external @absolutejs/audit --external drizzle-orm --external 'drizzle-orm/*' --external postgres --external @neondatabase/serverless && tsc --project tsconfig.build.json && absolute-manifest emit",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"./**/*.{ts,json,md}\"",
+    "release": "bun run format && bun run build && bun publish"
+  },
+  "peerDependencies": {
+    "@absolutejs/audit": ">= 0.0.1",
+    "@neondatabase/serverless": ">= 0.10.0",
+    "postgres": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@neondatabase/serverless": {
+      "optional": true
+    },
+    "postgres": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@absolutejs/audit": "^0.0.5",
+    "@electric-sql/pglite": "0.3.14",
+    "@types/bun": "1.3.14",
+    "postgres": "^3.4.9",
+    "prettier": "3.5.3",
+    "typescript": "5.8.3"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./manifest": {
+      "types": "./dist/manifest.d.ts",
+      "import": "./dist/manifest.js",
+      "default": "./dist/manifest.js"
+    },
+    "./manifest.json": "./dist/manifest.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "@absolutejs/manifest": "^0.1.0",
+    "@sinclair/typebox": "^0.34.0",
+    "drizzle-orm": "1.0.0-rc.4"
+  }
 }

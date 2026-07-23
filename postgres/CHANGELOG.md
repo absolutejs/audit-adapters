@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.4] — 2026-07-23
+
+- Adds the package-owned `auditEvents` Drizzle table and
+  `createDrizzleAuditSink({ db })`.
+- Preserves recent-window ordering, filtering, pruning, native JSONB metadata,
+  and integrity-chain behavior without a tagged-template compatibility client.
+- Advertises the Drizzle implementation and migration lifecycle through the
+  AbsoluteJS manifest while retaining the existing lightweight adapter.
+
 ## [0.0.3] — 2026-07-14
 
 - `list({ limit })` now selects the most recent matching rows and returns that
