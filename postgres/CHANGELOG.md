@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.5] — 2026-07-23
+
+- Encodes Drizzle audit metadata through a portable JSONB codec so Bun SQL,
+  postgres.js, Neon and PGlite all persist integrity-chain objects as native
+  JSONB instead of relying on driver-specific object parameter behavior.
+
 ## [0.0.4] — 2026-07-23
 
 - Adds the package-owned `auditEvents` Drizzle table and

@@ -17,12 +17,19 @@ import {
 import {
   bigint,
   bigserial,
+  customType,
   index,
-  jsonb,
   pgTable,
   text,
   type PgAsyncDatabase,
 } from "drizzle-orm/pg-core";
+
+const portableJsonb = customType<{ data: unknown; driverData: unknown }>({
+  dataType: () => "jsonb",
+  fromDriver: (value) =>
+    typeof value === "string" ? JSON.parse(value) : value,
+  toDriver: (value) => JSON.stringify(value),
+});
 
 export const auditEvents = pgTable(
   "audit_events",
@@ -31,7 +38,7 @@ export const auditEvents = pgTable(
     at: bigint({ mode: "number" }).notNull(),
     id: bigserial({ mode: "number" }).primaryKey(),
     kind: text().notNull(),
-    metadata: jsonb().$type<Record<string, unknown>>(),
+    metadata: portableJsonb().$type<Record<string, unknown>>(),
     target: text(),
   },
   (table) => [

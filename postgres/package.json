@@ -1,6 +1,6 @@
 {
   "name": "@absolutejs/audit-postgres",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Postgres-backed AuditSink for @absolutejs/audit with first-class Drizzle and tagged-template adapters, native JSONB metadata, and indexed history.",
   "repository": {
     "type": "git",
