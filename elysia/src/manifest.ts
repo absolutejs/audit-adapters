@@ -5,11 +5,10 @@ import type { AuditElysiaOptions } from './index';
 /* Serializable subset of AuditElysiaOptions: kind / requestIdHeader /
  * correlateOtelTraceId. `audit` is instance-valued (the createAudit handle
  * from @absolutejs/audit) and `actor` / `redact` are function-valued →
- * wiring concerns. Contract v1 has no placeholder for another package's
- * wired instance, so the recipe references a module-scope `audit` binding
- * with a TODO (same pattern as auth's getUser). */
+ * wiring concerns. The recipe references a module-scope `audit` binding
+ * supplied by the application's audit composition. */
 export const manifest = defineManifest<AuditElysiaOptions>()({
-	contract: 1,
+	contract: 2,
 	identity: {
 		accent: '#7c3aed',
 		category: 'compliance',
@@ -23,10 +22,10 @@ export const manifest = defineManifest<AuditElysiaOptions>()({
 		peers: [
 			{
 				name: '@absolutejs/audit',
-				range: '>=0.0.1',
+				range: '>=0.2.1 <0.3.0',
 				reason: 'the audit log requests are recorded into'
 			},
-			{ name: 'elysia', range: '>=1.4.0', reason: 'plugin host' }
+			{ name: 'elysia', range: '>=1.4.29 <2', reason: 'plugin host' }
 		]
 	},
 	settings: Type.Object({

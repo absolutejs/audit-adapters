@@ -5,7 +5,7 @@ import type { CreatePostgresAuditSinkOptions } from "./index";
 /* `sql` is instance-valued (the tag-template client) → built in the wiring
  * from DATABASE_URL; only table/ensureSchema are settings. */
 export const manifest = defineManifest<CreatePostgresAuditSinkOptions>()({
-  contract: 1,
+  contract: 2,
   identity: {
     accent: "#336791",
     category: "compliance",
@@ -24,7 +24,7 @@ export const manifest = defineManifest<CreatePostgresAuditSinkOptions>()({
         peers: [
           {
             name: "drizzle-orm",
-            range: ">=1.0.0-rc.4",
+            range: ">=1.0.0-rc.4 <2",
             reason: "Schema-derived Postgres persistence",
           },
         ],
@@ -63,7 +63,7 @@ export const manifest = defineManifest<CreatePostgresAuditSinkOptions>()({
         peers: [
           {
             name: "@neondatabase/serverless",
-            range: ">=0.10.0",
+            range: ">=1.1.0 <2",
             reason:
               "HTTP tag-template Postgres client (swap for `postgres` over TCP if you prefer)",
           },

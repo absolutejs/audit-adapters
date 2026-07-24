@@ -8,7 +8,7 @@ import type { CreateS3AuditSinkOptions } from './index';
  * wiring builds around it — they intentionally don't map 1:1 onto
  * CreateS3AuditSinkOptions. Same pattern as @absolutejs/blob's s3 entry. */
 export const manifest = defineManifest<CreateS3AuditSinkOptions>()({
-	contract: 1,
+	contract: 2,
 	identity: {
 		accent: '#f59e0b',
 		category: 'compliance',
