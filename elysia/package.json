@@ -1,97 +1,99 @@
 {
-	"name": "@absolutejs/audit-elysia",
-  "version": "0.1.1",
-	"description": "Elysia plugin emitting one structured audit event per request into @absolutejs/audit. Wires into onRequest + onAfterResponse so success AND error paths are captured. Orthogonal to @elysiajs/server-timing (perf headers) and @elysiajs/opentelemetry (sampled tracing); optionally correlates with the active OTel trace id.",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/absolutejs/audit-adapters.git",
-		"directory": "elysia"
-	},
-	"homepage": "https://github.com/absolutejs/audit-adapters/tree/main/elysia",
-	"bugs": {
-		"url": "https://github.com/absolutejs/audit-adapters/issues"
-	},
-	"main": "./dist/index.js",
-	"module": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"type": "module",
-	"license": "Apache-2.0",
-	"author": "Alex Kahn",
-	"absolutejs": {
-		"manifestContract": 2,
-		"runtimePeers": {
-			"@absolutejs/audit": {
-				"artifactImports": [],
-				"buildExternals": [
-					"@absolutejs/audit"
-				],
-				"range": ">=0.2.1 <0.3.0",
-				"tested": "0.2.1"
-			},
-			"elysia": {
-				"artifactImports": [
-					"elysia"
-				],
-				"buildExternals": [
-					"elysia"
-				],
-				"range": ">=1.4.29 <2",
-				"tested": "1.4.29"
-			}
-		}
-	},
-	"publishConfig": {
-		"access": "public"
-	},
-	"keywords": [
-		"audit",
-		"elysia",
-		"middleware",
-		"plugin",
-		"audit-log",
-		"compliance",
-		"http",
-		"absolutejs"
-	],
-	"scripts": {
-		"build": "rm -rf dist && bun build src/index.ts src/manifest.ts --outdir dist --sourcemap --target=bun --external @absolutejs/audit --external @absolutejs/telemetry --external elysia && tsc --project tsconfig.build.json && absolute-manifest emit",
-		"test": "bun test",
-		"typecheck": "tsc --noEmit",
-		"format": "prettier --write \"./**/*.{ts,json,md}\"",
-		"release": "bun run format && bun run build && bun publish"
-	},
-	"dependencies": {
+  "name": "@absolutejs/audit-elysia",
+  "version": "0.1.2",
+  "description": "Elysia plugin emitting one structured audit event per request into @absolutejs/audit. Wires into onRequest + onAfterResponse so success AND error paths are captured. Orthogonal to @elysiajs/server-timing (perf headers) and @elysiajs/opentelemetry (sampled tracing); optionally correlates with the active OTel trace id.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/absolutejs/audit-adapters.git",
+    "directory": "elysia"
+  },
+  "homepage": "https://github.com/absolutejs/audit-adapters/tree/main/elysia",
+  "bugs": {
+    "url": "https://github.com/absolutejs/audit-adapters/issues"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "license": "Apache-2.0",
+  "author": "Alex Kahn",
+  "absolutejs": {
+    "manifestContract": 2,
+    "runtimePeers": {
+      "@absolutejs/audit": {
+        "artifactImports": [],
+        "buildExternals": [
+          "@absolutejs/audit"
+        ],
+        "range": ">=0.2.1 <0.3.0",
+        "tested": "0.2.2"
+      },
+      "elysia": {
+        "artifactImports": [
+          "elysia"
+        ],
+        "buildExternals": [
+          "elysia"
+        ],
+        "range": ">=1.4.29 <2",
+        "tested": "1.4.29"
+      }
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "audit",
+    "elysia",
+    "middleware",
+    "plugin",
+    "audit-log",
+    "compliance",
+    "http",
+    "absolutejs"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && bun build src/index.ts src/manifest.ts --outdir dist --sourcemap --target=bun --external @absolutejs/audit --external @absolutejs/telemetry --external elysia && tsc --project tsconfig.build.json && absolute-manifest emit",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"./**/*.{ts,json,md}\"",
+    "verify-package": "absolute-manifest verify-package",
+    "check:package": "bun run typecheck && bun run verify-package && bun run build && bun run verify-package --artifacts && bun run test",
+    "release": "bun run format && bun run check:package && bun publish"
+  },
+  "dependencies": {
     "@absolutejs/manifest": "^0.7.2",
     "@absolutejs/telemetry": "^0.2.0",
-		"@sinclair/typebox": "^0.34.0"
-	},
-	"peerDependencies": {
-		"@absolutejs/audit": ">=0.2.1 <0.3.0",
-		"elysia": ">=1.4.29 <2"
-	},
-	"devDependencies": {
-		"@absolutejs/audit": "0.2.1",
+    "@sinclair/typebox": "^0.34.0"
+  },
+  "peerDependencies": {
+    "@absolutejs/audit": ">=0.2.1 <0.3.0",
+    "elysia": ">=1.4.29 <2"
+  },
+  "devDependencies": {
+    "@absolutejs/audit": "0.2.2",
     "@absolutejs/telemetry": "0.2.0",
-		"@types/bun": "1.3.14",
-		"elysia": "1.4.29",
-		"prettier": "3.5.3",
-		"typescript": "5.8.3"
-	},
-	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js",
-			"default": "./dist/index.js"
-		},
-		"./manifest": {
-			"types": "./dist/manifest.d.ts",
-			"import": "./dist/manifest.js",
-			"default": "./dist/manifest.js"
-		},
-		"./manifest.json": "./dist/manifest.json"
-	},
-	"files": [
-		"dist",
-		"README.md"
-	]
+    "@types/bun": "1.3.14",
+    "elysia": "1.4.29",
+    "prettier": "3.5.3",
+    "typescript": "5.8.3"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./manifest": {
+      "types": "./dist/manifest.d.ts",
+      "import": "./dist/manifest.js",
+      "default": "./dist/manifest.js"
+    },
+    "./manifest.json": "./dist/manifest.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
 }
