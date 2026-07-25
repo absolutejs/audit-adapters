@@ -4,7 +4,7 @@
   "description": "S3-compatible AuditSink for @absolutejs/audit. Buffered JSONL writes to AWS S3 / Cloudflare R2 / Backblaze B2 / MinIO. Time-sortable object keys; WORM-bucket-friendly for compliance retention.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/absolutejs/audit-adapters.git",
+    "url": "git+https://github.com/absolutejs/audit-adapters.git",
     "directory": "s3"
   },
   "homepage": "https://github.com/absolutejs/audit-adapters/tree/main/s3",
