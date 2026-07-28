@@ -44,6 +44,15 @@ export {
   createDrizzleAuditSink,
   type CreateDrizzleAuditSinkOptions,
 } from "./drizzle";
+export {
+  getAuditPostgresSchemaSql,
+  runAuditPostgresMigrations,
+  type AuditPostgresMigrationClient,
+  type AuditPostgresSchemaOptions,
+  type RunAuditPostgresMigrationsOptions,
+} from "./migrations";
+
+import { getAuditPostgresSchemaSql } from "./migrations";
 
 /**
  * Minimal subset of `postgres`'s `Sql` type the adapter uses. Declaring
@@ -62,11 +71,6 @@ type ExecutablePostgresTag = {
   ): PromiseLike<T[]>;
   unsafe: (sql: string) => PromiseLike<unknown[]>;
 };
-
-/** Strict identifier validation — used for `table` in the DDL. Defends
- *  against SQL injection while letting the caller customize the table
- *  name. */
-const IDENTIFIER = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
 export type CreatePostgresAuditSinkOptions = {
   /**
@@ -94,11 +98,7 @@ export const createPostgresAuditSink = (
   options: CreatePostgresAuditSinkOptions,
 ): AuditSink => {
   const table = options.table ?? "audit_events";
-  if (!IDENTIFIER.test(table)) {
-    throw new Error(
-      `[audit-postgres] invalid table name "${table}"; must match ${IDENTIFIER.source}`,
-    );
-  }
+  const schemaSql = getAuditPostgresSchemaSql({ table });
   const sql = options.sql as unknown as ExecutablePostgresTag;
   const shouldEnsureSchema = options.ensureSchema ?? true;
 
@@ -106,22 +106,9 @@ export const createPostgresAuditSink = (
   const ensureSchema = (): Promise<void> => {
     if (!shouldEnsureSchema) return Promise.resolve();
     if (schemaReady !== undefined) return schemaReady;
-    // Concatenate DDL — postgres-js's `unsafe()` runs multi-statement.
-    // All four statements are idempotent (`IF NOT EXISTS`).
-    const ddl = `
-			CREATE TABLE IF NOT EXISTS ${table} (
-				id bigserial PRIMARY KEY,
-				at bigint NOT NULL,
-				kind text NOT NULL,
-				actor text,
-				target text,
-				metadata jsonb
-			);
-			CREATE INDEX IF NOT EXISTS ${table}_at_idx ON ${table} (at DESC);
-			CREATE INDEX IF NOT EXISTS ${table}_kind_idx ON ${table} (kind);
-			CREATE INDEX IF NOT EXISTS ${table}_actor_idx ON ${table} (actor) WHERE actor IS NOT NULL;
-		`;
-    schemaReady = Promise.resolve(sql.unsafe(ddl)).then(() => undefined);
+    // postgres-js's `unsafe()` runs the package-owned multi-statement
+    // migration. All four statements are idempotent (`IF NOT EXISTS`).
+    schemaReady = Promise.resolve(sql.unsafe(schemaSql)).then(() => undefined);
     return schemaReady;
   };
 

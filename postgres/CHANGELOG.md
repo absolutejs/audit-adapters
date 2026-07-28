@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2] — 2026-07-28
+
+- Exports deterministic package-owned PostgreSQL schema SQL and an idempotent
+  migration runner that accepts a caller-owned query client.
+- Reuses the exported migration SQL for the tagged-template adapter's lazy
+  schema initialization so runtime and deployment paths cannot drift.
+
 ## [0.0.5] — 2026-07-23
 
 - Encodes Drizzle audit metadata through a portable JSONB codec so Bun SQL,

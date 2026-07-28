@@ -51,6 +51,24 @@ exports `auditEvents` and `auditDrizzleSchema`, uses native typed JSONB, and
 implements the same recent-window, actor, kind, time-range, and prune behavior
 as the tagged-template adapter.
 
+If your application intentionally keeps package-owned tables out of its
+Drizzle schema, apply this adapter's migration through your existing
+PostgreSQL client instead:
+
+```ts
+import { runAuditPostgresMigrations } from "@absolutejs/audit-postgres";
+
+await runAuditPostgresMigrations({
+  client: {
+    query: (text) => sql.unsafe(text),
+  },
+});
+```
+
+The runner uses idempotent DDL and never creates or closes the injected client.
+`getAuditPostgresSchemaSql({ table? })` exposes the same deterministic,
+validated SQL for migration systems that apply SQL themselves.
+
 ### postgres.js
 
 ```ts
@@ -122,6 +140,8 @@ CREATE INDEX IF NOT EXISTS audit_events_actor_idx    ON audit_events (actor) WHE
 const auditEvents: PgTable;
 const auditDrizzleSchema: { auditEvents: typeof auditEvents };
 const createDrizzleAuditSink: ({ db }) => AuditSink;
+const getAuditPostgresSchemaSql: ({ table? }) => string;
+const runAuditPostgresMigrations: ({ client, table? }) => Promise<void>;
 
 type CreatePostgresAuditSinkOptions = {
   sql: PostgresTag; // postgres-js or @neondatabase/serverless
