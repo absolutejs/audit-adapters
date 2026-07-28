@@ -39,8 +39,11 @@ import type {
 } from "@absolutejs/audit";
 
 export {
+  auditBunSqlDrizzleSchema,
   auditDrizzleSchema,
   auditEvents,
+  auditEventsBunSql,
+  createBunSqlDrizzleAuditSink,
   createDrizzleAuditSink,
   type CreateDrizzleAuditSinkOptions,
 } from "./drizzle";

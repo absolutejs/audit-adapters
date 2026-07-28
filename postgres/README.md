@@ -46,6 +46,23 @@ const audit = createAudit({
 });
 ```
 
+When the Drizzle database uses Bun SQL, opt into the Bun-native JSONB mapping
+and sink so object and array parameters are not pre-stringified:
+
+```ts
+export { auditEventsBunSql as auditEvents } from "@absolutejs/audit-postgres";
+
+import { createBunSqlDrizzleAuditSink } from "@absolutejs/audit-postgres";
+
+const sink = createBunSqlDrizzleAuditSink({ db });
+```
+
+`auditBunSqlDrizzleSchema` provides the same mapping as a schema object. The
+default `auditEvents`, `auditDrizzleSchema`, and `createDrizzleAuditSink`
+exports retain their existing postgres.js-compatible codec. Select the mapping
+from the configured database driver rather than the JavaScript runtime:
+postgres.js can itself run under Bun.
+
 The Drizzle adapter deliberately never runs DDL at application runtime. It
 exports `auditEvents` and `auditDrizzleSchema`, uses native typed JSONB, and
 implements the same recent-window, actor, kind, time-range, and prune behavior
@@ -138,8 +155,13 @@ CREATE INDEX IF NOT EXISTS audit_events_actor_idx    ON audit_events (actor) WHE
 
 ```ts
 const auditEvents: PgTable;
+const auditEventsBunSql: PgTable;
 const auditDrizzleSchema: { auditEvents: typeof auditEvents };
+const auditBunSqlDrizzleSchema: {
+  auditEvents: typeof auditEventsBunSql;
+};
 const createDrizzleAuditSink: ({ db }) => AuditSink;
+const createBunSqlDrizzleAuditSink: ({ db }) => AuditSink;
 const getAuditPostgresSchemaSql: ({ table? }) => string;
 const runAuditPostgresMigrations: ({ client, table? }) => Promise<void>;
 

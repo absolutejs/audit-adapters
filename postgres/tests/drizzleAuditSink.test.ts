@@ -1,8 +1,14 @@
 import { createAudit, verifyChain, withIntegrity } from "@absolutejs/audit";
 import { PGlite } from "@electric-sql/pglite";
-import { beforeEach, describe, expect, test } from "bun:test";
+import { afterAll, beforeEach, describe, expect, test } from "bun:test";
+import postgres from "postgres";
 import { drizzle } from "drizzle-orm/pglite";
-import { createDrizzleAuditSink } from "../src/drizzle";
+import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
+import {
+  createBunSqlDrizzleAuditSink,
+  createDrizzleAuditSink,
+  runAuditPostgresMigrations,
+} from "../src";
 
 const createTestDatabase = async () => {
   const client = new PGlite();
@@ -16,17 +22,18 @@ const createTestDatabase = async () => {
 			metadata jsonb
 		);
 	`);
-  return drizzle({ client });
+  return { client, db: drizzle({ client }) };
 };
 
-let db: Awaited<ReturnType<typeof createTestDatabase>>;
+let database: Awaited<ReturnType<typeof createTestDatabase>>;
 
 beforeEach(async () => {
-  db = await createTestDatabase();
+  database = await createTestDatabase();
 });
 
 describe("createDrizzleAuditSink", () => {
   test("filters and orders recent events through the schema", async () => {
+    const { db } = database;
     const sink = createDrizzleAuditSink({ db });
     await sink.append({
       actor: "alice",
@@ -65,7 +72,8 @@ describe("createDrizzleAuditSink", () => {
   });
 
   test("retains native JSONB integrity metadata and prunes by cutoff", async () => {
-    const base = createDrizzleAuditSink({ db });
+    const { client, db } = database;
+    const base = createBunSqlDrizzleAuditSink({ db });
     const sink = withIntegrity(base, {
       secret: "drizzle-integrity-secret",
       writerId: "drizzle-test",
@@ -81,6 +89,12 @@ describe("createDrizzleAuditSink", () => {
 
     const events = (await base.list?.()) ?? [];
     expect(events[1]?.metadata?.nested).toEqual({ retained: true });
+    const storage = await client.query<{ metadataType: string }>(`
+      SELECT jsonb_typeof(metadata) AS "metadataType"
+      FROM audit_events
+      WHERE kind = 'current'
+    `);
+    expect(storage.rows[0]?.metadataType).toBe("object");
     expect(await verifyChain(events, "drizzle-integrity-secret")).toEqual({
       ok: true,
     });
@@ -91,10 +105,71 @@ describe("createDrizzleAuditSink", () => {
     await audit.close();
   });
 
+  test("reads metadata rows written by the legacy string codec", async () => {
+    const { client, db } = database;
+    await client.query(
+      `
+        INSERT INTO audit_events (at, kind, metadata)
+        VALUES (100, 'legacy', $1::jsonb)
+      `,
+      [JSON.stringify(JSON.stringify({ retained: true }))],
+    );
+
+    const sink = createBunSqlDrizzleAuditSink({ db });
+    expect(await sink.list?.()).toEqual([
+      {
+        at: 100,
+        kind: "legacy",
+        metadata: { retained: true },
+      },
+    ]);
+  });
+
   test("rejects unbounded query limits", async () => {
+    const { db } = database;
     const sink = createDrizzleAuditSink({ db });
     expect(sink.list?.({ limit: 0 })).rejects.toThrow(
       "Audit query limit must be an integer from 1 through 1000",
     );
   });
 });
+
+const PG_URL = process.env.AUDIT_PG_TEST_URL;
+const integrationSql =
+  PG_URL === undefined ? undefined : postgres(PG_URL, { max: 1 });
+
+afterAll(async () => {
+  if (integrationSql === undefined) return;
+  await integrationSql`DROP TABLE IF EXISTS audit_events`;
+  await integrationSql.end();
+});
+
+describe.skipIf(PG_URL === undefined)(
+  "createDrizzleAuditSink — real PostgreSQL",
+  () => {
+    test("stores metadata as a native JSONB object", async () => {
+      if (integrationSql === undefined)
+        throw new Error("AUDIT_PG_TEST_URL is required");
+
+      await runAuditPostgresMigrations({
+        client: {
+          query: (text) => integrationSql.unsafe(text),
+        },
+      });
+      const db = drizzlePostgres({ client: integrationSql });
+      const sink = createDrizzleAuditSink({ db });
+      await sink.append({
+        at: 100,
+        kind: "native-jsonb",
+        metadata: { nested: { retained: true } },
+      });
+
+      const storage = await integrationSql<{ metadataType: string }[]>`
+        SELECT jsonb_typeof(metadata) AS "metadataType"
+        FROM audit_events
+        WHERE kind = 'native-jsonb'
+      `;
+      expect(storage[0]?.metadataType).toBe("object");
+    });
+  },
+);

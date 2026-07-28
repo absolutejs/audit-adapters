@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3] — 2026-07-28
+
+- Adds explicit Bun SQL table/schema/sink exports that persist metadata objects
+  as native JSONB values instead of pre-stringifying them into JSONB strings.
+  The existing postgres.js-compatible exports remain unchanged.
+- Retains compatibility when reading previously string-encoded rows.
+- Adds a raw-storage regression assertion using `jsonb_typeof(metadata)`.
+
 ## [0.1.2] — 2026-07-28
 
 - Exports deterministic package-owned PostgreSQL schema SQL and an idempotent
