@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.4] — 2026-07-28
+
+- Adds a package-owned `audit_postgres_migrations` journal with stable
+  migration IDs and SHA-256 digests.
+- Adopts existing lazy-created tables, serializes concurrent runners with a
+  transaction-scoped advisory lock, and fails closed when applied SQL changes.
+- Limits custom table names to 53 ASCII identifier characters so derived index
+  names cannot collide through PostgreSQL identifier truncation.
+
 ## [0.1.3] — 2026-07-28
 
 - Adds explicit Bun SQL table/schema/sink exports that persist metadata objects

@@ -82,9 +82,15 @@ await runAuditPostgresMigrations({
 });
 ```
 
-The runner uses idempotent DDL and never creates or closes the injected client.
-`getAuditPostgresSchemaSql({ table? })` exposes the same deterministic,
-validated SQL for migration systems that apply SQL themselves.
+The runner uses an atomic, digest-checked `0001_init` migration for each
+validated table name and records it in `audit_postgres_migrations`. Concurrent
+runners serialize with a transaction-scoped advisory lock. Existing tables
+created through the lazy adapter are safely adopted by the first runner.
+Changing an applied migration's SQL fails closed. The runner never creates or
+closes the injected client. `getAuditPostgresSchemaSql({ table? })` exposes the
+same deterministic, validated SQL for migration systems that apply SQL
+themselves, while `auditPostgresMigrationPlan({ table? })` exposes the numbered
+ID, SQL, and SHA-256 digest.
 
 ### postgres.js
 
@@ -147,8 +153,9 @@ CREATE INDEX IF NOT EXISTS audit_events_actor_idx    ON audit_events (actor) WHE
 - All three indexes are partial-or-full to cover the common filter paths
   (recent-first lists; per-kind filters; per-actor lookups).
 - The table name is customizable via the `table` option (strictly validated
-  against `/^[a-zA-Z_][a-zA-Z0-9_]*$/` to defend against injection — the
-  identifier has to be interpolated into the DDL, not parameterized).
+  against `/^[a-zA-Z_][a-zA-Z0-9_]*$/` and limited to 53 characters to defend
+  against injection and PostgreSQL index-name truncation — the identifier has
+  to be interpolated into the DDL, not parameterized).
 - Pass `ensureSchema: false` if you manage migrations yourself.
 
 ## API
@@ -163,6 +170,11 @@ const auditBunSqlDrizzleSchema: {
 const createDrizzleAuditSink: ({ db }) => AuditSink;
 const createBunSqlDrizzleAuditSink: ({ db }) => AuditSink;
 const getAuditPostgresSchemaSql: ({ table? }) => string;
+const auditPostgresMigrationPlan: ({ table? }) => Array<{
+  id: string;
+  sql: string;
+  digest: string;
+}>;
 const runAuditPostgresMigrations: ({ client, table? }) => Promise<void>;
 
 type CreatePostgresAuditSinkOptions = {

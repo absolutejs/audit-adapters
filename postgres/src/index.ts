@@ -48,8 +48,11 @@ export {
   type CreateDrizzleAuditSinkOptions,
 } from "./drizzle";
 export {
+  AUDIT_POSTGRES_MIGRATION_JOURNAL_TABLE,
+  auditPostgresMigrationPlan,
   getAuditPostgresSchemaSql,
   runAuditPostgresMigrations,
+  type AuditPostgresMigration,
   type AuditPostgresMigrationClient,
   type AuditPostgresSchemaOptions,
   type RunAuditPostgresMigrationsOptions,
