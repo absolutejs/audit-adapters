@@ -167,5 +167,5 @@ registered on the parent app, not just routes defined on the plugin.
 
 ## License
 
-[Apache 2.0](../LICENSE). Substrate-adjacent — rides
+Apache 2.0. Substrate-adjacent — rides
 `@absolutejs/audit` (BSL Tier A) and `elysia` (MIT).

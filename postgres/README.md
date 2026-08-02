@@ -222,7 +222,7 @@ Override the DSN via `AUDIT_PG_TEST_URL` to point at your own Postgres.
 
 ## License
 
-[Apache 2.0](../LICENSE). Substrate-adjacent: this adapter only has value
+Apache 2.0. Substrate-adjacent: this adapter only has value
 riding `@absolutejs/audit` (which is BSL Tier A). Per the AbsoluteJS
 licensing policy, adapters that only ride a Tier A host stay
 permissive — see [the policy](https://github.com/absolutejs/...) for the

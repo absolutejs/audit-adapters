@@ -158,5 +158,5 @@ const result = await verifyChain(allEvents, secret);
 
 ## License
 
-[Apache 2.0](../LICENSE). Substrate-adjacent — rides `@absolutejs/audit`
+Apache 2.0. Substrate-adjacent — rides `@absolutejs/audit`
 (BSL Tier A).
