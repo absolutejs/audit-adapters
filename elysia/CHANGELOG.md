@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.3] — 2026-08-07
+
+- Accepts the shared `@absolutejs/telemetry` 0.3 runtime line.
+
 ## [0.0.5] — 2026-07-14
 
 - Adds async `exclude(context)` filtering before request state is allocated.
