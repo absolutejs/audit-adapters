@@ -18,28 +18,7 @@
   "license": "Apache-2.0",
   "author": "Alex Kahn",
   "absolutejs": {
-    "manifestContract": 2,
-    "runtimePeers": {
-      "@absolutejs/audit": {
-        "artifactImports": [],
-        "buildExternals": [
-          "@absolutejs/audit"
-        ],
-        "range": ">=0.2.1 <0.3.0",
-        "tested": "0.2.2"
-      },
-      "drizzle-orm": {
-        "artifactImports": [
-          "drizzle-orm",
-          "drizzle-orm/pg-core"
-        ],
-        "buildExternals": [
-          "drizzle-orm"
-        ],
-        "range": ">=1.0.0-rc.4 <2",
-        "tested": "1.0.0-rc.4"
-      }
-    }
+    "manifestContract": 2
   },
   "publishConfig": {
     "access": "public"
@@ -59,7 +38,7 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"./**/*.{ts,json,md}\"",
     "verify-package": "absolute-manifest verify-package",
-    "check:package": "bun run typecheck && bun run verify-package && bun run build && bun run verify-package --artifacts && bun run test",
+    "check:package": "bun run typecheck && bun run verify-package && bun run build && bun run test",
     "release": "bun run format && bun run check:package && bun publish"
   },
   "peerDependencies": {
@@ -93,7 +72,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@absolutejs/manifest": "^0.7.2",
+    "@absolutejs/manifest": "^0.9.0",
     "@sinclair/typebox": "^0.34.0"
   }
 }

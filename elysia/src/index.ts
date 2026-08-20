@@ -6,11 +6,11 @@
  *
  * The Elysia ecosystem already covers two adjacent observability needs:
  *
- *   - `@elysiajs/server-timing` emits the IETF `Server-Timing` response
+ *   - `@elysia/server-timing` emits the IETF `Server-Timing` response
  *     header (lifecycle-phase durations: parse / handle / afterHandle /
  *     total). Header-only, browser-devtools-shaped, **off by default in
  *     production**. Performance instrumentation, not compliance.
- *   - `@elysiajs/opentelemetry` wires the request lifecycle into OTel
+ *   - `@elysia/opentelemetry` wires the request lifecycle into OTel
  *     spans through any configured `SpanProcessor` / `SpanExporter`.
  *     Spans are **sampled and ephemeral** — wrong shape for an
  *     append-only compliance log.
@@ -20,12 +20,12 @@
  * tamper-evident-when-paired-with-withIntegrity" shape. It is
  * **orthogonal to both** — install all three if you want all three.
  *
- * **Why `onAfterResponse`?** It's the only Elysia lifecycle hook that
+ * **Why `afterResponse`?** It's the only Elysia lifecycle hook that
  * fires exactly once per request **including error paths** (Elysia
- * routes errors through `onError` and the resulting response still
- * flows through to `onAfterResponse`). `onRequest` fires before
- * routing (no status); `onBeforeHandle` / `onAfterHandle` skip on
- * short-circuit; `onError` only fires on errors. Pair with `onRequest`
+ * routes errors through `error` and the resulting response still
+ * flows through to `afterResponse`). `request` fires before
+ * routing (no status); `beforeHandle` / `afterHandle` skip on
+ * short-circuit; `error` only fires on errors. Pair with `request`
  * to capture the wall-clock start.
  *
  * **OTel correlation is optional, not coupled.** Set
@@ -50,8 +50,8 @@ type ElysiaRequestContext = {
 };
 
 /**
- * Per-request state stamped at `onRequest`, consumed at
- * `onAfterResponse`. Keyed by the `Request` object — stable across
+ * Per-request state stamped at `request`, consumed at
+ * `afterResponse`. Keyed by the `Request` object — stable across
  * Elysia lifecycle hooks within one request, GC'd automatically once
  * the request is done (WeakMap entry becomes eligible when no other
  * references hold the Request).
@@ -175,7 +175,7 @@ export const auditElysia = (options: AuditElysiaOptions) => {
 	const stateByRequest = new WeakMap<Request, RequestState>();
 
 	return new Elysia({ name: '@absolutejs/audit-elysia' })
-		.onRequest(async (ctx) => {
+		.request(async (ctx) => {
 			if (exclude !== undefined) {
 				try {
 					if (await exclude(ctx as unknown as ElysiaRequestContext)) return;
@@ -197,7 +197,7 @@ export const auditElysia = (options: AuditElysiaOptions) => {
 				startedAt: Date.now()
 			});
 		})
-		.onAfterResponse(async (ctx) => {
+		.afterResponse('global', async (ctx) => {
 			const state = stateByRequest.get(ctx.request);
 			if (state === undefined) return;
 			stateByRequest.delete(ctx.request);
@@ -211,10 +211,15 @@ export const auditElysia = (options: AuditElysiaOptions) => {
 				(ctx as unknown as { path?: string }).path ??
 				(ctx as unknown as { route?: string }).route ??
 				url.pathname;
-			const status = coerceStatus(
-				(ctx as unknown as { set?: { status?: number | string } }).set
-					?.status
-			);
+			const responseValue = (ctx as unknown as { responseValue?: unknown })
+				.responseValue;
+			const status =
+				responseValue instanceof Response
+					? responseValue.status
+					: coerceStatus(
+							(ctx as unknown as { set?: { status?: number | string } })
+								.set?.status
+						);
 			const headers = safeHeaders(ctx.request.headers);
 			const method = ctx.request.method;
 
@@ -266,7 +271,7 @@ export const auditElysia = (options: AuditElysiaOptions) => {
 			} catch {
 				// Audit append failures are swallowed at the plugin
 				// boundary — they must NOT crash the response. The
-				// audit's own onError hook will have fired already.
+				// audit's own error hook will have fired already.
 			}
 		})
 		// Promote the hooks to global scope so they fire for every

@@ -13,7 +13,7 @@ export const manifest = defineManifest<AuditElysiaOptions>()({
 		accent: '#7c3aed',
 		category: 'compliance',
 		description:
-			'Elysia plugin emitting one structured audit event per HTTP request into `@absolutejs/audit`. Wires onRequest + onAfterResponse so success AND error paths are captured; optional OTel trace-id correlation. Orthogonal to server-timing (perf headers) and opentelemetry (sampled tracing).',
+			'Elysia plugin emitting one structured audit event per HTTP request into `@absolutejs/audit`. Wires request + afterResponse so success AND error paths are captured; optional OTel trace-id correlation. Orthogonal to server-timing (perf headers) and opentelemetry (sampled tracing).',
 		docsUrl: 'https://github.com/absolutejs/audit-adapters/tree/main/elysia',
 		name: '@absolutejs/audit-elysia',
 		tagline: 'Record every request your server handles in the audit log.'
@@ -25,7 +25,7 @@ export const manifest = defineManifest<AuditElysiaOptions>()({
 				range: '>=0.2.1 <0.3.0',
 				reason: 'the audit log requests are recorded into'
 			},
-			{ name: 'elysia', range: '>=1.4.29 <2', reason: 'plugin host' }
+			{ name: 'elysia', range: '^2.0.0-beta.6', reason: 'plugin host' }
 		]
 	},
 	settings: Type.Object({

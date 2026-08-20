@@ -7,18 +7,18 @@ Elysia plugin that emits one structured audit event per HTTP request into
 
 The Elysia ecosystem already has:
 
-- **`@elysiajs/server-timing`** — emits an IETF `Server-Timing` response
+- **`@elysia/server-timing`** — emits an IETF `Server-Timing` response
   header with per-lifecycle-phase durations. Performance instrumentation
   visible in browser devtools. **Off by default in production.** Useful,
   but not compliance-shaped.
-- **`@elysiajs/opentelemetry`** — wires the request lifecycle into OTel
+- **`@elysia/opentelemetry`** — wires the request lifecycle into OTel
   spans. Distributed tracing exported to Jaeger / Honeycomb / Axiom /
   Datadog. **Sampled, ephemeral.** Useful, but not retention-shaped.
 
 Neither is structured audit. Audit is "an append-only event per request,
 tamper-evident when paired with `withIntegrity`, queryable, and retained
 for compliance" — a separate concern. This plugin fills that gap. **No
-official `@elysiajs/audit` exists**; the community has logging plugins
+official Elysia audit plugin exists**; the community has logging plugins
 (`logestic`, `logixlysia`, etc.) but none are structured tamper-evident
 audit pipelines.
 
@@ -125,7 +125,7 @@ Falls back silently when OTel isn't installed. **Default `false`** —
 opt-in because not every app runs OTel, and we don't want a hidden dynamic
 import in the request hot path.
 
-When combined with `@elysiajs/opentelemetry`, this is the principled
+When combined with `@elysia/opentelemetry`, this is the principled
 bridge: every audit row carries the trace_id of the span that produced it,
 so SREs investigating a flagged audit row can pivot to the trace.
 
@@ -147,10 +147,10 @@ Header name to extract a client-supplied request id from. Default
 
 ## Which hook does it use?
 
-`onAfterResponse` — the only Elysia lifecycle hook that fires once per
-request **including error paths**. Verified via Elysia 1.4 docs and tested
-with handlers that throw. `onRequest` is also wired (to stamp the wall-
-clock start), but the emission is in `onAfterResponse`.
+`afterResponse` — the only Elysia lifecycle hook that fires once per
+request **including error paths**. Verified against Elysia 2 and tested
+with handlers that throw. `request` is also wired (to stamp the wall-
+clock start), but the emission is in `afterResponse`.
 
 The plugin scopes both hooks to `'global'` so they apply to every route
 registered on the parent app, not just routes defined on the plugin.
