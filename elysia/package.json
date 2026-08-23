@@ -1,6 +1,6 @@
 {
   "name": "@absolutejs/audit-elysia",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Elysia plugin emitting one structured audit event per request into @absolutejs/audit. Wires into request + afterResponse so success AND error paths are captured. Orthogonal to @elysia/server-timing (perf headers) and @elysia/opentelemetry (sampled tracing); optionally correlates with the active OTel trace id.",
   "repository": {
     "type": "git",
@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@absolutejs/manifest": "^0.9.0",
-    "@absolutejs/telemetry": "^0.2.0",
+    "@absolutejs/telemetry": ">=0.2.0 <0.4.0",
     "@sinclair/typebox": "^0.34.0"
   },
   "peerDependencies": {
