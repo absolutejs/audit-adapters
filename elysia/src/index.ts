@@ -175,7 +175,7 @@ export const auditElysia = (options: AuditElysiaOptions) => {
 	const stateByRequest = new WeakMap<Request, RequestState>();
 
 	return new Elysia({ name: '@absolutejs/audit-elysia' })
-		.request(async (ctx) => {
+		.onRequest(async (ctx) => {
 			if (exclude !== undefined) {
 				try {
 					if (await exclude(ctx as unknown as ElysiaRequestContext)) return;
@@ -197,7 +197,7 @@ export const auditElysia = (options: AuditElysiaOptions) => {
 				startedAt: Date.now()
 			});
 		})
-		.afterResponse('global', async (ctx) => {
+		.onAfterResponse('global', async (ctx) => {
 			const state = stateByRequest.get(ctx.request);
 			if (state === undefined) return;
 			stateByRequest.delete(ctx.request);
