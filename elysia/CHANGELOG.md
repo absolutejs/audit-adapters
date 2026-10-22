@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0] — 2026-10-22
+
+- **Breaking:** requires `elysia ^2.0.0-rc.0`. Elysia 2.0.0-rc.0 renamed the
+  lifecycle hooks to their `on` form; the plugin now registers `onRequest` and
+  `onAfterResponse`. Upgrade `elysia` and every `@elysia/*` package to
+  2.0.0-rc.0 or later and rename hooks in your own server (absolutejs/scripts
+  `codemods/elysia-rc-hooks.ts` does it). No API change in this plugin.
+
 ## [0.0.5] — 2026-07-14
 
 - Adds async `exclude(context)` filtering before request state is allocated.
